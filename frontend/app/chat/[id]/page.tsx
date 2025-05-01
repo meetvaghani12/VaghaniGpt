@@ -9,26 +9,77 @@ import { Avatar } from "@/components/ui/avatar"
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "@/components/ui/use-toast"
 import { useAuth } from "@/hooks/use-auth"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 
 interface Message {
   role: 'user' | 'assistant'
   content: string
 }
 
+// Function to format AI response with paragraphs and bold titles
+const formatAIResponse = (content: string) => {
+  // Replace special characters with line breaks
+  const formattedContent = content
+    .replace(/\*\*/g, '\n\n') // Replace ** with double line break
+    .replace(/\*/g, '\n')     // Replace * with single line break
+  
+  // Split content into paragraphs
+  const paragraphs = formattedContent.split('\n\n')
+  
+  return paragraphs.map((paragraph, index) => {
+    // Check if paragraph is empty after trimming
+    if (!paragraph.trim()) return null
+
+    // Check if paragraph starts with a title pattern (e.g., "Title:", "1. Title", etc.)
+    const titleMatch = paragraph.match(/^([\d.]+)?\s*([^:]+):/)
+    if (titleMatch) {
+      const [, number, title] = titleMatch
+      const content = paragraph.replace(titleMatch[0], '').trim()
+      return (
+        <div key={index} className="mb-4">
+          <h3 className="font-bold text-lg mb-2">
+            {number ? `${number} ` : ''}{title}
+          </h3>
+          <p className="text-muted-foreground">{content}</p>
+        </div>
+      )
+    }
+    
+    // Regular paragraph
+    return (
+      <p key={index} className="mb-4 text-muted-foreground">
+        {paragraph}
+      </p>
+    )
+  })
+}
+
 export default function ChatPage() {
   const { id } = useParams()
-  const { user } = useAuth()
+  const router = useRouter()
+  const { user, signOut } = useAuth()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true)
 
   // Load chat history when component mounts
   useEffect(() => {
-    const loadChatHistory = () => {
+    const loadChatHistory = async () => {
       try {
+        setIsLoadingHistory(true)
+        
+        // Check if user is authenticated
+        if (!user) {
+          const userData = localStorage.getItem('user')
+          if (!userData) {
+            router.push('/login')
+            return
+          }
+        }
+
         // Load chat messages from localStorage
         const chatMessages = localStorage.getItem(`chat_${id}`)
         if (chatMessages) {
@@ -52,10 +103,17 @@ export default function ChatPage() {
         }
       } catch (error) {
         console.error('Error loading chat history:', error)
+        toast({
+          title: "Error",
+          description: "Failed to load chat history",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoadingHistory(false)
       }
     }
     loadChatHistory()
-  }, [id, messages.length])
+  }, [id, messages.length, user, router])
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -165,13 +223,18 @@ export default function ChatPage() {
     }
   }
 
-  if (!mounted) return null
+  if (!mounted || isLoadingHistory) return null
 
   return (
     <div className="flex h-full flex-col bg-background">
       {/* Chat header */}
       <header className="flex h-14 items-center justify-between border-b px-4 lg:px-6">
-        <h1 className="text-lg font-semibold">Vaghani AI</h1>
+        <h1 
+          className="text-lg font-semibold cursor-pointer hover:text-primary transition-colors"
+          onClick={() => router.push('/chat')}
+        >
+          Vaghani AI
+        </h1>
         {user && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">{user.email}</span>
@@ -225,7 +288,15 @@ export default function ChatPage() {
                     <p className="text-sm font-medium">
                       {message.role === 'user' ? 'You' : 'Vaghani AI'}
                     </p>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{message.content}</p>
+                    {message.role === 'assistant' ? (
+                      <div className="text-sm text-muted-foreground">
+                        {formatAIResponse(message.content)}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {message.content}
+                      </p>
+                    )}
                   </div>
                 </motion.div>
               ))}
