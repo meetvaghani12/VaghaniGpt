@@ -39,7 +39,21 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
   }, [])
 
   const handleNewChat = () => {
-    router.push("/chat")
+    // Generate a new chat ID
+    const newChatId = Date.now().toString()
+    const newChat = {
+      id: newChatId,
+      title: 'New Chat',
+      date: new Date().toLocaleDateString()
+    }
+    
+    // Update chat history
+    const updatedHistory = [newChat, ...chatHistory]
+    setChatHistory(updatedHistory)
+    localStorage.setItem('chatHistory', JSON.stringify(updatedHistory))
+    
+    // Navigate to new chat
+    router.push(`/chat/${newChatId}`)
     if (onClose) onClose()
   }
 
@@ -51,6 +65,9 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
     const updatedHistory = chatHistory.filter((chat) => chat.id !== id)
     setChatHistory(updatedHistory)
     localStorage.setItem('chatHistory', JSON.stringify(updatedHistory))
+    
+    // Remove chat messages from localStorage
+    localStorage.removeItem(`chat_${id}`)
   }
 
   const handleLogout = async () => {
