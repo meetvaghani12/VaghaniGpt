@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -11,15 +10,13 @@ import { Separator } from "@/components/ui/separator"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Plus, MessageSquare, MoreVertical, LogOut, Trash2, User } from "lucide-react"
 import { motion } from "framer-motion"
+import { useAuth } from "@/hooks/use-auth"
 
-// Mock chat history data
-const mockChatHistory = [
-  { id: "1", title: "Quantum Computing Basics", date: "2 hours ago" },
-  { id: "2", title: "Creative Story Ideas", date: "Yesterday" },
-  { id: "3", title: "Python Programming Help", date: "2 days ago" },
-  { id: "4", title: "Travel Recommendations", date: "1 week ago" },
-  { id: "5", title: "Recipe for Chocolate Cake", date: "2 weeks ago" },
-]
+interface ChatHistory {
+  id: string
+  title: string
+  date: string
+}
 
 interface ChatSidebarProps {
   onClose?: () => void
@@ -27,11 +24,21 @@ interface ChatSidebarProps {
 
 export function ChatSidebar({ onClose }: ChatSidebarProps) {
   const router = useRouter()
-  const [chatHistory, setChatHistory] = useState(mockChatHistory)
+  const { user, signOut } = useAuth()
+  const [chatHistory, setChatHistory] = useState<ChatHistory[]>([])
+
+  useEffect(() => {
+    // Load chat history from localStorage
+    const loadChatHistory = () => {
+      const history = localStorage.getItem('chatHistory')
+      if (history) {
+        setChatHistory(JSON.parse(history))
+      }
+    }
+    loadChatHistory()
+  }, [])
 
   const handleNewChat = () => {
-    // In a real app, you would create a new chat in the backend
-    // and then redirect to it
     router.push("/chat")
     if (onClose) onClose()
   }
@@ -39,17 +46,24 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
   const handleDeleteChat = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
     e.preventDefault()
-    // Filter out the deleted chat
-    setChatHistory(chatHistory.filter((chat) => chat.id !== id))
+    
+    // Update chat history
+    const updatedHistory = chatHistory.filter((chat) => chat.id !== id)
+    setChatHistory(updatedHistory)
+    localStorage.setItem('chatHistory', JSON.stringify(updatedHistory))
   }
 
-  const handleLogout = () => {
-    // In a real app, you would handle logout logic here
-    router.push("/")
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      router.push("/login")
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
   }
 
   return (
-    <div className="flex h-full flex-col bg-gray-50 dark:bg-gray-800">
+    <div className="flex h-full flex-col bg-background border-r">
       {/* New Chat Button */}
       <div className="p-4">
         <Button onClick={handleNewChat} className="w-full justify-start gap-2" variant="default">
@@ -72,17 +86,17 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
             >
               <Link
                 href={`/chat/${chat.id}`}
-                className="group flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="group flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
                 onClick={() => {
                   if (onClose) onClose()
                 }}
               >
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <MessageSquare className="h-4 w-4 shrink-0 text-gray-500" />
+                  <MessageSquare className="h-4 w-4 shrink-0" />
                   <div className="overflow-hidden text-ellipsis whitespace-nowrap">{chat.title}</div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">{chat.date}</span>
+                  <span className="text-xs text-muted-foreground">{chat.date}</span>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -97,7 +111,7 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        className="text-red-500 focus:text-red-500"
+                        className="text-destructive focus:text-destructive"
                         onClick={(e) => handleDeleteChat(chat.id, e as any)}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
@@ -120,15 +134,15 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
               <User className="h-5 w-5" />
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-medium">John Doe</p>
-              <p className="truncate text-xs text-gray-500">john@example.com</p>
+              <p className="text-sm font-medium">{user?.name || 'Guest'}</p>
+              <p className="truncate text-xs text-muted-foreground">{user?.email || 'Not logged in'}</p>
             </div>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={handleLogout}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            className="text-muted-foreground hover:text-foreground"
           >
             <LogOut className="h-5 w-5" />
             <span className="sr-only">Log out</span>

@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { Avatar } from "@/components/ui/avatar"
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "@/components/ui/use-toast"
+import { useAuth } from "@/hooks/use-auth"
 
 interface Message {
   role: 'user' | 'assistant'
@@ -15,6 +16,7 @@ interface Message {
 }
 
 export default function ChatPage() {
+  const { user } = useAuth()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -32,6 +34,16 @@ export default function ChatPage() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  const saveChatHistory = (title: string) => {
+    const chatHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]')
+    const newChat = {
+      id: Date.now().toString(),
+      title,
+      date: new Date().toLocaleDateString(),
+    }
+    localStorage.setItem('chatHistory', JSON.stringify([newChat, ...chatHistory]))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -96,6 +108,11 @@ export default function ChatPage() {
           }
         }
       }
+
+      // Save chat history after successful response
+      if (messages.length === 0) {
+        saveChatHistory(userMessage.slice(0, 50) + (userMessage.length > 50 ? '...' : ''))
+      }
     } catch (error) {
       console.error('Chat error:', error)
       toast({
@@ -113,10 +130,15 @@ export default function ChatPage() {
   if (!mounted) return null
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-background">
       {/* Chat header */}
       <header className="flex h-14 items-center justify-between border-b px-4 lg:px-6">
-        <h1 className="text-lg font-semibold">Gemini 2.0 Flash Chat</h1>
+        <h1 className="text-lg font-semibold">Vaghani AI</h1>
+        {user && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">{user.email}</span>
+          </div>
+        )}
       </header>
 
       {/* Chat messages */}
@@ -141,7 +163,7 @@ export default function ChatPage() {
               </div>
               <h2 className="text-xl font-semibold">Start a conversation</h2>
               <p className="text-center text-muted-foreground">
-                Ask anything to Gemini 2.0 Flash
+                Ask anything to Vaghani AI
               </p>
             </div>
           ) : (
@@ -163,9 +185,9 @@ export default function ChatPage() {
                   </Avatar>
                   <div className="flex-1 space-y-2">
                     <p className="text-sm font-medium">
-                      {message.role === 'user' ? 'You' : 'Gemini'}
+                      {message.role === 'user' ? 'You' : 'Vaghani AI'}
                     </p>
-                    <p className="text-sm text-muted-foreground">{message.content}</p>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{message.content}</p>
                   </div>
                 </motion.div>
               ))}
@@ -182,7 +204,7 @@ export default function ChatPage() {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Message Gemini..."
+              placeholder="Message Vaghani..."
               className="flex-1"
             />
             <Button type="submit" disabled={isLoading || !input.trim()}>
