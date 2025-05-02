@@ -46,7 +46,6 @@ OAuth2 login via Google for enhanced convenience and security.
 # 📌 Tech Stack
 **Frontend**: React / Next.js / Tailwind CSS  
 **Backend**: Node.js / Express / PostgraceSql / Prisma
-
 **Authentication**: JWT, OTP via Email, OAuth (Google)  
 **AI Models**: OpenAI GPT-4.1, Google Gemini, DeepSeek
 
