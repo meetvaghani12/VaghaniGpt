@@ -36,6 +36,27 @@ Easily switch between models based on your needs and preferences.
 - A configured environment with the required API keys (OpenAI, Google Gemini, etc.)
 - SMTP setup for email-based OTPs
 
+- # 🛡️ Security
+All authentication is backed by OTPs and secure email verification.
+
+JWT-based session handling for secure API access.
+
+OAuth2 login via Google for enhanced convenience and security.
+
+# 📌 Tech Stack
+**Frontend**: React / Next.js / Tailwind CSS  
+**Backend**: Node.js / Express / MongoDB  
+**Authentication**: JWT, OTP via Email, OAuth (Google)  
+**AI Models**: OpenAI GPT-4.1, Google Gemini, DeepSeek
+
+# 🙌 Contributing
+Feel free to fork the project and submit a pull request with improvements or new features.
+
+# 📄 License
+This project is licensed under the MIT License.
+
+Made with 💙 by Meet Vaghani
+
 ### Installation
 
 ```bash
