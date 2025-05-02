@@ -55,14 +55,26 @@ Feel free to fork the project and submit a pull request with improvements or new
 # 📄 License
 This project is licensed under the MIT License.
 
+
+
+
+
+
+
+
+Made with 💙 by Meet Vaghani
+
+
+
+
+
+
+
+
+
 ### Installation
 
 ```bash
 git clone https://github.com/meetvaghani12/VaghaniGpt
 cd VaghaniGpt
 npm install
-
-
-
-
-Made with 💙 by Meet Vaghani
