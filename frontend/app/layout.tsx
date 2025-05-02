@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Vaghani AI",
-  description: "A modern chat interface powered by Vaghani AI",
+  description: "AI Chat Assistant",
 }
 
 export default function RootLayout({
@@ -22,7 +22,7 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          enableSystem={false}
+          enableSystem
           disableTransitionOnChange
         >
           {children}

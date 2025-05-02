@@ -3,7 +3,9 @@ import { useState, useEffect } from 'react'
 interface User {
   id: string
   name: string
+  displayName?: string
   email: string
+  photoURL?: string
 }
 
 export function useAuth() {

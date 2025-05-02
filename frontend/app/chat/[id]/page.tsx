@@ -10,6 +10,7 @@ import { AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "@/components/ui/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import { useParams, useRouter } from "next/navigation"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 interface Message {
   role: 'user' | 'assistant'
@@ -18,40 +19,51 @@ interface Message {
 
 // Function to format AI response with paragraphs and bold titles
 const formatAIResponse = (content: string) => {
-  // Replace special characters with line breaks
-  const formattedContent = content
-    .replace(/\*\*/g, '\n\n') // Replace ** with double line break
-    .replace(/\*/g, '\n')     // Replace * with single line break
+  // Split content by asterisks for bullet points
+  const sections = content.split('*').filter(section => section.trim());
   
-  // Split content into paragraphs
-  const paragraphs = formattedContent.split('\n\n')
-  
-  return paragraphs.map((paragraph, index) => {
-    // Check if paragraph is empty after trimming
-    if (!paragraph.trim()) return null
-
-    // Check if paragraph starts with a title pattern (e.g., "Title:", "1. Title", etc.)
-    const titleMatch = paragraph.match(/^([\d.]+)?\s*([^:]+):/)
-    if (titleMatch) {
-      const [, number, title] = titleMatch
-      const content = paragraph.replace(titleMatch[0], '').trim()
+  return sections.map((section, index) => {
+    const trimmedSection = section.trim();
+    
+    // Check if section starts with a number or bullet point
+    if (trimmedSection.match(/^\d+\./) || trimmedSection.startsWith('-')) {
       return (
-        <div key={index} className="mb-4">
-          <h3 className="font-bold text-lg mb-2">
-            {number ? `${number} ` : ''}{title}
-          </h3>
-          <p className="text-muted-foreground">{content}</p>
-        </div>
-      )
+        <li key={index} className="mb-2 text-muted-foreground">
+          {trimmedSection}
+        </li>
+      );
     }
     
     // Regular paragraph
     return (
       <p key={index} className="mb-4 text-muted-foreground">
-        {paragraph}
+        {trimmedSection}
       </p>
-    )
-  })
+    );
+  });
+}
+
+const LoadingDots = () => {
+  return (
+    <div className="flex space-x-1">
+      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+    </div>
+  )
+}
+
+const TypingAnimation = () => {
+  return (
+    <div className="flex items-center space-x-2">
+      <div className="flex space-x-1">
+        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+      </div>
+      <span className="text-sm text-muted-foreground">AI is typing...</span>
+    </div>
+  )
 }
 
 export default function ChatPage() {
@@ -235,11 +247,12 @@ export default function ChatPage() {
         >
           Vaghani AI
         </h1>
-        {user && (
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          {user && (
             <span className="text-sm text-muted-foreground">{user.email}</span>
-          </div>
-        )}
+          )}
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Chat messages */}
@@ -274,30 +287,38 @@ export default function ChatPage() {
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="flex items-start space-x-4"
+                  transition={{ duration: 0.3 }}
+                  className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <Avatar>
-                    <AvatarImage
-                      src={message.role === 'user' ? '/placeholder-user.jpg' : '/placeholder-logo.png'}
-                      alt={message.role === 'user' ? 'User' : 'AI'}
-                    />
-                    <AvatarFallback>{message.role === 'user' ? 'U' : 'AI'}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 space-y-2">
-                    <p className="text-sm font-medium">
-                      {message.role === 'user' ? 'You' : 'Vaghani AI'}
-                    </p>
+                  {message.role === 'assistant' && (
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="/ai-avatar.png" alt="AI" />
+                      <AvatarFallback>AI</AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div className={`max-w-[80%] rounded-lg p-4 ${
+                    message.role === 'user' 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-muted'
+                  }`}>
                     {message.role === 'assistant' ? (
-                      <div className="text-sm text-muted-foreground">
-                        {formatAIResponse(message.content)}
+                      <div className="space-y-2">
+                        {message.content ? (
+                          formatAIResponse(message.content)
+                        ) : (
+                          <TypingAnimation />
+                        )}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {message.content}
-                      </p>
+                      <p>{message.content}</p>
                     )}
                   </div>
+                  {message.role === 'user' && (
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user?.photoURL} alt={user?.name || 'User'} />
+                      <AvatarFallback>{user?.name?.[0] || 'U'}</AvatarFallback>
+                    </Avatar>
+                  )}
                 </motion.div>
               ))}
             </AnimatePresence>
