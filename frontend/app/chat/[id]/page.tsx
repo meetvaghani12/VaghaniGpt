@@ -73,6 +73,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isAiTyping, setIsAiTyping] = useState(false) // New state for AI typing indicator
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(true)
@@ -127,12 +128,12 @@ export default function ChatPage() {
     loadChatHistory()
   }, [id, messages.length, user, router])
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom when messages change or when typing indicator appears/disappears
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
-  }, [messages])
+  }, [messages, isAiTyping])
 
   // Set mounted to true after component mounts
   useEffect(() => {
@@ -146,6 +147,7 @@ export default function ChatPage() {
     const userMessage = input.trim()
     setInput('')
     setIsLoading(true)
+    setIsAiTyping(true) // Show typing indicator immediately after sending message
 
     // Add user message to the chat
     const updatedMessages: Message[] = [...messages, { role: 'user' as const, content: userMessage }]
@@ -173,7 +175,7 @@ export default function ChatPage() {
       }
 
       let assistantMessage = ''
-      setMessages(prev => [...prev, { role: 'assistant' as const, content: '' }])
+      let firstChunkReceived = false
 
       while (true) {
         const { done, value } = await reader.read()
@@ -187,6 +189,13 @@ export default function ChatPage() {
             try {
               const data = JSON.parse(line.slice(6))
               if (data.content) {
+                if (!firstChunkReceived) {
+                  firstChunkReceived = true
+                  setIsAiTyping(false) // Hide the typing indicator
+                  // Add the assistant message to the chat
+                  setMessages(prev => [...prev, { role: 'assistant' as const, content: '' }])
+                }
+                
                 assistantMessage += data.content
                 setMessages(prev => {
                   const newMessages = [...prev]
@@ -228,10 +237,9 @@ export default function ChatPage() {
         description: error instanceof Error ? error.message : 'Failed to process chat request',
         variant: "destructive",
       })
-      // Remove the empty assistant message if there was an error
-      setMessages(prev => prev.slice(0, -1))
     } finally {
       setIsLoading(false)
+      setIsAiTyping(false) // Ensure typing indicator is removed
     }
   }
 
@@ -258,7 +266,7 @@ export default function ChatPage() {
       {/* Chat messages */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="mx-auto max-w-3xl space-y-6">
-          {messages.length === 0 ? (
+          {messages.length === 0 && !isAiTyping ? (
             <div className="flex h-full flex-col items-center justify-center space-y-4 py-12">
               <div className="rounded-full bg-primary/10 p-4">
                 <svg
@@ -284,7 +292,7 @@ export default function ChatPage() {
             <AnimatePresence>
               {messages.map((message, index) => (
                 <motion.div
-                  key={index}
+                  key={`message-${index}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
@@ -303,11 +311,7 @@ export default function ChatPage() {
                   }`}>
                     {message.role === 'assistant' ? (
                       <div className="space-y-2">
-                        {message.content ? (
-                          formatAIResponse(message.content)
-                        ) : (
-                          <TypingAnimation />
-                        )}
+                        {formatAIResponse(message.content)}
                       </div>
                     ) : (
                       <p>{message.content}</p>
@@ -321,6 +325,25 @@ export default function ChatPage() {
                   )}
                 </motion.div>
               ))}
+
+              {/* AI typing indicator (outside of messages array) */}
+              {isAiTyping && (
+                <motion.div
+                  key="ai-typing-indicator"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex gap-4 justify-start"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="/ai-avatar.png" alt="AI" />
+                    <AvatarFallback>AI</AvatarFallback>
+                  </Avatar>
+                  <div className="max-w-[80%] rounded-lg p-4 bg-muted">
+                    <TypingAnimation />
+                  </div>
+                </motion.div>
+              )}
             </AnimatePresence>
           )}
           <div ref={messagesEndRef} />
@@ -349,4 +372,4 @@ export default function ChatPage() {
       </div>
     </div>
   )
-} 
+}
