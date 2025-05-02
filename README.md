@@ -1,4 +1,4 @@
-# 🔮 AI Chat Application
+# 🔮 VAGHANI GPT- AI Chat Application
 
 An intelligent multi-model chat application that allows users to converse with leading AI models, secured by robust authentication mechanisms and enhanced by rich features like chat history and session management.
 
@@ -39,6 +39,6 @@ Easily switch between models based on your needs and preferences.
 ### Installation
 
 ```bash
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
+git clone https://github.com/meetvaghani12/VaghaniGpt
+cd VaghaniGpt
 npm install
