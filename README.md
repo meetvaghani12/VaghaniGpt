@@ -45,7 +45,7 @@ OAuth2 login via Google for enhanced convenience and security.
 
 # 📌 Tech Stack
 **Frontend**: React / Next.js / Tailwind CSS  
-**Backend**: Node.js / Express / MongoDB  
+**Backend**: Node.js / Express / PostgraceSql / Prisma 
 **Authentication**: JWT, OTP via Email, OAuth (Google)  
 **AI Models**: OpenAI GPT-4.1, Google Gemini, DeepSeek
 
@@ -55,11 +55,14 @@ Feel free to fork the project and submit a pull request with improvements or new
 # 📄 License
 This project is licensed under the MIT License.
 
-Made with 💙 by Meet Vaghani
-
 ### Installation
 
 ```bash
 git clone https://github.com/meetvaghani12/VaghaniGpt
 cd VaghaniGpt
 npm install
+
+
+
+
+Made with 💙 by Meet Vaghani
