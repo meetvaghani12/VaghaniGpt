@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json()
-    console.log('[Frontend API] Received request:', { messages })
+    const { messages, model } = await req.json()
+    console.log('[Frontend API] Received request:', { messages, model })
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, model }),
     })
 
     if (!response.ok) {

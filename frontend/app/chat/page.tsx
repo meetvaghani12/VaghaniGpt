@@ -9,6 +9,7 @@ import { Avatar } from "@/components/ui/avatar"
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "@/components/ui/use-toast"
 import { useAuth } from "@/hooks/use-auth"
+import { ModelSelector } from "@/components/model-selector"
 
 interface Message {
   role: 'user' | 'assistant'
@@ -21,6 +22,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isAiTyping, setIsAiTyping] = useState(false)
+  const [selectedModel, setSelectedModel] = useState('gemini')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
 
@@ -53,11 +55,8 @@ export default function ChatPage() {
     const userMessage = input.trim()
     setInput('')
     setIsLoading(true)
-    
-    // Set AI typing indicator to true BEFORE adding user message
     setIsAiTyping(true)
 
-    // Add user message to the chat
     setMessages(prev => [...prev, { role: 'user', content: userMessage }])
 
     try {
@@ -68,6 +67,7 @@ export default function ChatPage() {
         },
         body: JSON.stringify({
           messages: [...messages, { role: 'user', content: userMessage }],
+          model: selectedModel,
         }),
       })
 
@@ -151,7 +151,10 @@ export default function ChatPage() {
     <div className="flex h-full flex-col bg-background">
       {/* Chat header */}
       <header className="flex h-14 items-center justify-between border-b px-4 lg:px-6">
-        <h1 className="text-lg font-semibold">Vaghani AI</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-semibold">Vaghani AI</h1>
+          <ModelSelector value={selectedModel} onChange={setSelectedModel} />
+        </div>
         {user && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">{user.email}</span>

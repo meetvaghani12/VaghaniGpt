@@ -6,8 +6,9 @@ const router = Router();
 router.post('/chat', (req, res) => {
   return new Promise(async (resolve, _reject) => {
     try {
-      const { messages } = req.body;
-      console.log('[Backend API] Received request:', { messages });
+      const { messages, model } = req.body;
+      console.log('[Backend API] Full request body:', JSON.stringify(req.body, null, 2));
+      console.log('[Backend API] Selected model:', model);
 
       if (!messages || !Array.isArray(messages)) {
         console.error('[Backend API] Invalid messages format:', messages);
@@ -15,7 +16,14 @@ router.post('/chat', (req, res) => {
         return resolve(undefined);
       }
 
-      const response = await AIService.getResponse(messages);
+      if (!model || (model !== 'gemini' && model !== 'deepseek' && model !== 'openai')) {
+        console.error('[Backend API] Invalid model:', model);
+        res.status(400).json({ error: 'Invalid model specified' });
+        return resolve(undefined);
+      }
+
+      console.log('[Backend API] Calling AI service with model:', model);
+      const response = await AIService.getResponse(messages, model);
       console.log('[Backend API] Raw AI response:', response);
 
       // Set headers for streaming response

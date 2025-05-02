@@ -11,6 +11,7 @@ import { toast } from "@/components/ui/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import { useParams, useRouter } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { ModelSelector } from "@/components/model-selector"
 
 interface Message {
   role: 'user' | 'assistant'
@@ -73,7 +74,8 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [isAiTyping, setIsAiTyping] = useState(false) // New state for AI typing indicator
+  const [isAiTyping, setIsAiTyping] = useState(false)
+  const [selectedModel, setSelectedModel] = useState('gemini')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(true)
@@ -147,13 +149,13 @@ export default function ChatPage() {
     const userMessage = input.trim()
     setInput('')
     setIsLoading(true)
-    setIsAiTyping(true) // Show typing indicator immediately after sending message
+    setIsAiTyping(true)
 
-    // Add user message to the chat
     const updatedMessages: Message[] = [...messages, { role: 'user' as const, content: userMessage }]
     setMessages(updatedMessages)
 
     try {
+      console.log('Sending request with model:', selectedModel);
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -161,6 +163,7 @@ export default function ChatPage() {
         },
         body: JSON.stringify({
           messages: updatedMessages,
+          model: selectedModel,
         }),
       })
 
@@ -191,7 +194,7 @@ export default function ChatPage() {
               if (data.content) {
                 if (!firstChunkReceived) {
                   firstChunkReceived = true
-                  setIsAiTyping(false) // Hide the typing indicator
+                  setIsAiTyping(false)
                   // Add the assistant message to the chat
                   setMessages(prev => [...prev, { role: 'assistant' as const, content: '' }])
                 }
@@ -239,7 +242,7 @@ export default function ChatPage() {
       })
     } finally {
       setIsLoading(false)
-      setIsAiTyping(false) // Ensure typing indicator is removed
+      setIsAiTyping(false)
     }
   }
 
@@ -249,12 +252,10 @@ export default function ChatPage() {
     <div className="flex h-full flex-col bg-background">
       {/* Chat header */}
       <header className="flex h-14 items-center justify-between border-b px-4 lg:px-6">
-        <h1 
-          className="text-lg font-semibold cursor-pointer hover:text-primary transition-colors"
-          onClick={() => router.push('/chat')}
-        >
-          Vaghani AI
-        </h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-semibold">Vaghani AI</h1>
+          <ModelSelector value={selectedModel} onChange={setSelectedModel} />
+        </div>
         <div className="flex items-center gap-4">
           {user && (
             <span className="text-sm text-muted-foreground">{user.email}</span>
