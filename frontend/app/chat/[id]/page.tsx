@@ -61,7 +61,7 @@ const TypingAnimation = () => {
         <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
         <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
       </div>
-      <span className="text-sm text-muted-foreground">AI is typing...</span>
+      <span className="text-sm text-muted-foreground">VAGHANI is typing...</span>
     </div>
   )
 }
