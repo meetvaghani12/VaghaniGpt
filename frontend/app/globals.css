@@ -104,3 +104,61 @@
 ::-webkit-scrollbar-thumb:hover {
   background-color: rgba(155, 155, 155, 0.7);
 }
+
+/* Typing indicator animations */
+@keyframes dotAnimation {
+  0%, 20% { content: "."; }
+  40% { content: ".."; }
+  60%, 100% { content: "..."; }
+}
+
+.typing-dots {
+  display: inline-block;
+  min-width: 24px;
+}
+
+.typing-dots::after {
+  content: "";
+  display: inline-block;
+  animation: dotAnimation 1.5s infinite;
+}
+
+/* Enhanced typing animation */
+@keyframes typingBlink {
+  0% { opacity: 0.2; }
+  20% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+.typing-animation span {
+  animation: typingBlink 1.4s infinite;
+  animation-fill-mode: both;
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin: 0 1px;
+  background-color: currentColor;
+}
+
+.typing-animation span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-animation span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingDots {
+  0% { content: '.'; }
+  33% { content: '..'; }
+  66% { content: '...'; }
+}
+
+.typing-dots::after {
+  content: '.';
+  animation: typingDots 1.5s infinite;
+  display: inline-block;
+  width: 1em;
+  text-align: left;
+}

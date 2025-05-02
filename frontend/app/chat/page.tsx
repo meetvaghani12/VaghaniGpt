@@ -20,15 +20,16 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isAiTyping, setIsAiTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom when messages change or typing indicator appears
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
-  }, [messages])
+  }, [messages, isAiTyping])
 
   // Set mounted to true after component mounts
   useEffect(() => {
@@ -52,6 +53,9 @@ export default function ChatPage() {
     const userMessage = input.trim()
     setInput('')
     setIsLoading(true)
+    
+    // Set AI typing indicator to true BEFORE adding user message
+    setIsAiTyping(true)
 
     // Add user message to the chat
     setMessages(prev => [...prev, { role: 'user', content: userMessage }])
@@ -78,11 +82,17 @@ export default function ChatPage() {
       }
 
       let assistantMessage = ''
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }])
+      let firstChunkReceived = false
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
+
+        // On first chunk received, replace typing indicator with actual message
+        if (!firstChunkReceived) {
+          firstChunkReceived = true
+          // We'll keep isAiTyping true until we get the first chunk of the response
+        }
 
         const chunk = new TextDecoder().decode(value)
         const lines = chunk.split('\n')
@@ -92,12 +102,21 @@ export default function ChatPage() {
             try {
               const data = JSON.parse(line.slice(6))
               if (data.content) {
+                // Only on the first content chunk, remove typing indicator and add assistant message
+                if (assistantMessage === '') {
+                  setIsAiTyping(false)
+                  setMessages(prev => [...prev, { role: 'assistant', content: '' }])
+                }
+                
                 assistantMessage += data.content
                 setMessages(prev => {
                   const newMessages = [...prev]
-                  newMessages[newMessages.length - 1] = {
-                    role: 'assistant',
-                    content: assistantMessage
+                  // Make sure we're updating the last message and it's an assistant message
+                  if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === 'assistant') {
+                    newMessages[newMessages.length - 1] = {
+                      role: 'assistant',
+                      content: assistantMessage
+                    }
                   }
                   return newMessages
                 })
@@ -120,10 +139,9 @@ export default function ChatPage() {
         description: error instanceof Error ? error.message : 'Failed to process chat request',
         variant: "destructive",
       })
-      // Remove the empty assistant message if there was an error
-      setMessages(prev => prev.slice(0, -1))
     } finally {
       setIsLoading(false)
+      setIsAiTyping(false) // Ensure typing indicator is removed
     }
   }
 
@@ -144,7 +162,7 @@ export default function ChatPage() {
       {/* Chat messages */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="mx-auto max-w-3xl space-y-6">
-          {messages.length === 0 ? (
+          {messages.length === 0 && !isAiTyping ? (
             <div className="flex h-full flex-col items-center justify-center space-y-4 py-12">
               <div className="rounded-full bg-primary/10 p-4">
                 <svg
@@ -167,10 +185,11 @@ export default function ChatPage() {
               </p>
             </div>
           ) : (
-            <AnimatePresence>
+            <>
+              {/* Regular messages */}
               {messages.map((message, index) => (
                 <motion.div
-                  key={index}
+                  key={`message-${index}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
@@ -191,7 +210,33 @@ export default function ChatPage() {
                   </div>
                 </motion.div>
               ))}
-            </AnimatePresence>
+              
+              {/* AI typing indicator - separate from the messages array */}
+              {isAiTyping && (
+                <motion.div
+                  key="ai-typing"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="flex items-start space-x-4"
+                >
+                  <Avatar>
+                    <AvatarImage
+                      src="/placeholder-logo.png"
+                      alt="AI"
+                    />
+                    <AvatarFallback>AI</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm font-medium">Vaghani AI</p>
+                    <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+                      <span>AI is writing</span>
+                      <span className="typing-dots inline-flex w-8 h-5 items-end"></span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </>
           )}
           <div ref={messagesEndRef} />
         </div>
