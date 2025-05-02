@@ -159,7 +159,7 @@ export default function RegisterPage() {
                     <Input
                       id="firstName"
                       name="firstName"
-                      placeholder="John"
+                      placeholder="meet"
                       required
                       value={formData.firstName}
                       onChange={handleChange}
@@ -170,7 +170,7 @@ export default function RegisterPage() {
                     <Input
                       id="lastName"
                       name="lastName"
-                      placeholder="Doe"
+                      placeholder="vaghani"
                       required
                       value={formData.lastName}
                       onChange={handleChange}
@@ -183,7 +183,7 @@ export default function RegisterPage() {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="john@example.com"
+                    placeholder="meet@example.com"
                     required
                     value={formData.email}
                     onChange={handleChange}
@@ -206,7 +206,7 @@ export default function RegisterPage() {
                     id="phone"
                     name="phone"
                     type="tel"
-                    placeholder="+1 (555) 123-4567"
+                    placeholder="+91 12345 67890"
                     value={formData.phone}
                     onChange={handleChange}
                   />
