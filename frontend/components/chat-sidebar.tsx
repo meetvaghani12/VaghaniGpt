@@ -7,11 +7,10 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Plus, MessageSquare, MoreVertical, LogOut, Trash2, User, Sun, Moon } from "lucide-react"
+import { Plus, MessageSquare, LogOut, User } from "lucide-react"
 import { motion } from "framer-motion"
 import { useAuth } from "@/hooks/use-auth"
-// import { useTheme } from "next-themes"
+import { toast } from "@/components/ui/use-toast"
 
 interface ChatHistory {
   id: string
@@ -26,7 +25,6 @@ interface ChatSidebarProps {
 export function ChatSidebar({ onClose }: ChatSidebarProps) {
   const router = useRouter()
   const { user, signOut } = useAuth()
-  // const { theme, setTheme } = useTheme()
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([])
 
   useEffect(() => {
@@ -57,19 +55,6 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
     // Navigate to new chat
     router.push(`/chat/${newChatId}`)
     if (onClose) onClose()
-  }
-
-  const handleDeleteChat = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    e.preventDefault()
-    
-    // Update chat history
-    const updatedHistory = chatHistory.filter((chat) => chat.id !== id)
-    setChatHistory(updatedHistory)
-    localStorage.setItem('chatHistory', JSON.stringify(updatedHistory))
-    
-    // Remove chat messages from localStorage
-    localStorage.removeItem(`chat_${id}`)
   }
 
   const handleLogout = async () => {
@@ -114,31 +99,7 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
                   <MessageSquare className="h-4 w-4 shrink-0" />
                   <div className="overflow-hidden text-ellipsis whitespace-nowrap">{chat.title}</div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">{chat.date}</span>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">More options</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={(e) => handleDeleteChat(chat.id, e as any)}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete chat
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                <span className="text-xs text-muted-foreground">{chat.date}</span>
               </Link>
             </motion.div>
           ))}
@@ -154,7 +115,9 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
                 <User className="h-5 w-5" />
               </div>
               <div className="overflow-hidden">
-                <p className="text-sm font-medium">{user?.displayName || user?.name || 'Guest'}</p>
+                <p className="text-sm font-medium">
+                  {user?.displayName || user?.name || (user?.email ? user.email[0].toUpperCase() : 'Guest')}
+                </p>
                 <p className="truncate text-xs text-muted-foreground">{user?.email || 'Not logged in'}</p>
               </div>
             </div>
@@ -168,31 +131,12 @@ export function ChatSidebar({ onClose }: ChatSidebarProps) {
               <span className="sr-only">Log out</span>
             </Button>
           </div>
-          
-          {/* Theme Toggle
+
+          {/* Theme Toggle (commented out)
           <div className="flex items-center justify-between rounded-lg border p-2">
-            <div className="flex items-center gap-2">
-              {theme === 'dark' ? (
-                <Moon className="h-4 w-4" />
-              ) : (
-                <Sun className="h-4 w-4" />
-              )}
-              <span className="text-sm">Theme</span>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="h-8 w-8 p-0"
-            >
-              <span className="sr-only">Toggle theme</span>
-              {theme === 'dark' ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
-            </Button>
-          </div> */}
+            ...
+          </div>
+          */}
         </div>
       </div>
     </div>
