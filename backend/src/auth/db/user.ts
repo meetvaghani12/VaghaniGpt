@@ -16,7 +16,7 @@ export const findUserById = async (id: string): Promise<User | null> => {
 
 export const createUser = async (userData: {
   firstName: string;
-  lastName: string;
+  lastName?: string;
   email: string;
   password: string;
   phone?: string;
