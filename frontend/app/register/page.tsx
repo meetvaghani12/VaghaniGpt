@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react"
 import { GoogleAuthButton } from "@/components/google-auth-button"
 import { authApi } from "@/lib/auth-api"
 import { toast } from "@/components/ui/use-toast"
+import { ArrowLeft } from "lucide-react"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -126,6 +127,12 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900">
+      <Link href="/" className="absolute left-4 top-4 md:left-8 md:top-8">
+        <Button variant="ghost" className="gap-1">
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </Link>
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">

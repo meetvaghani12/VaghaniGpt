@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { GoogleAuthButton } from "@/components/google-auth-button"
 import { authApi } from "@/lib/auth-api"
 import { toast } from "@/components/ui/use-toast"
@@ -133,6 +134,12 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900">
+     <Link href="/" className="absolute left-4 top-4 md:left-8 md:top-8">
+        <Button variant="ghost" className="gap-1">
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </Link>
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
