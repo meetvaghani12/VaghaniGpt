@@ -1,4 +1,5 @@
 // src/app/api/auth/google/callback/route.ts
+'use client';
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
