@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const data = await response.json()
     
     // Set the token in a cookie
-    const redirectUrl = new URL('/api/auth/success', request.url)
+    const redirectUrl = new URL('/auth/callback/success', request.url)
     
     if (data.token) {
       // Add token to the URL as a parameter (will be extracted and stored in localStorage)
